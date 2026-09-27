@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>N2 作答</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar" id="topbar">
+    <div class="row">
+      <a href="index.html" class="btn small">← 首頁</a>
+      <div class="grow"></div>
+      <span class="muted" id="pos"></span>
+      <span class="timer muted" id="timer"></span>
+      <button class="btn small" id="overview-btn">總覽</button>
+    </div>
+    <div class="progress"><div id="bar-fill" style="width:0"></div></div>
+  </div>
+  <div id="main"><div class="card muted">載入中…</div></div>
+</div>
+
+<div class="bottombar" id="bottombar"><div class="inner" id="bottom"></div></div>
+
+<script src="assets/common.js"></script>
+<script>
+const CONF = [['sure', '確定'], ['guess', '猜的'], ['unknown', '不會']];
+const CONF_LABEL = Object.fromEntries(CONF);
+const quizId = new URLSearchParams(location.search).get('id');
+const KEY = 'n2.quiz.' + quizId;
+const RESULT_KEY = 'n2.result.' + quizId;
+
+let quiz, flat = [], st, view = 'question', shownAt = null, timerHandle = null;
+
+// ---------- 狀態 ----------
+function saveState() { store.set(KEY, st); }
+
+function startClock() {
+  shownAt = Date.now();
+}
+function stopClock() {
+  if (shownAt == null || !flat[st.current]) return;
+  const q = flat[st.current];
+  const a = st.answers[q.id] || (st.answers[q.id] = { choice: null, confidence: null, timeMs: 0 });
+  a.timeMs += Date.now() - shownAt;
+  shownAt = null;
+  saveState();
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (view !== 'question') return;
+  if (document.visibilityState === 'hidden') {
+    stopClock();
+    st.activeMs = (st.activeMs || 0) + (Date.now() - (st.resumedAt || Date.now()));
+    st.resumedAt = null;
+    saveState();
+  } else {
+    st.resumedAt = Date.now();
+    startClock();
+  }
+});
+
+function activeMs() {
+  return (st.activeMs || 0) + (st.resumedAt ? Date.now() - st.resumedAt : 0);
+}
+
+function tickTimer() {
+  const t = document.getElementById('timer');
+  const sec = activeMs() / 1000;
+  const limit = (quiz.timeLimitMin || 0) * 60;
+  t.textContent = limit ? `${fmtDuration(sec)} / ${quiz.timeLimitMin}:00` : fmtDuration(sec);
+  t.classList.toggle('over', !!limit && sec > limit);
+}
+
+// ---------- 作答畫面 ----------
+function goTo(i) {
+  stopClock();
+  st.current = Math.max(0, Math.min(flat.length - 1, i));
+  saveState();
+  view = 'question';
+  render();
+  startClock();
+  window.scrollTo(0, 0);
+}
+
+function answered(q) {
+  const a = st.answers[q.id];
+  return a && a.choice != null && a.confidence != null;
+}
+
+function render() {
+  const main = document.getElementById('main');
+  const bottom = document.getElementById('bottom');
+  main.innerHTML = '';
+  bottom.innerHTML = '';
+  const nDone = flat.filter(answered).length;
+  document.getElementById('bar-fill').style.width = (nDone / flat.length * 100) + '%';
+  document.getElementById('pos').textContent = view === 'question' ? `${st.current + 1} / ${flat.length}` : `${nDone} / ${flat.length}`;
+
+  if (view === 'overview') return renderOverview(main, bottom);
+
+  const q = flat[st.current];
+  const sec = quiz.sections[q._s];
+  const a = st.answers[q.id] || {};
+
+  main.append(el('div', { class: 'section-title' }, sec.title));
+  if (sec.instructions) main.append(el('div', { class: 'instructions' }, sec.instructions));
+  if (sec.audio) main.append(el('audio', { controls: true, src: sec.audio, style: 'width:100%;margin-top:8px' }));
+  if (sec.passage) main.append(el('div', { class: 'passage', html: sec.passage }));
+  if (q.audio) main.append(el('audio', { controls: true, src: q.audio, style: 'width:100%;margin-top:8px' }));
+
+  main.append(el('div', { class: 'prompt', html: q.prompt }));
+
+  const choices = el('div', { class: 'choices' });
+  q.choices.forEach((c, i) => {
+    choices.append(el('button', {
+      class: 'choice' + (a.choice === i ? ' selected' : ''),
+      onclick: () => { setAnswer(q, 'choice', i); },
+    }, el('span', { class: 'n' }, String(i + 1)), el('span', { html: c })));
+  });
+  main.append(choices);
+
+  const conf = el('div', { class: 'confidence' });
+  CONF.forEach(([k, label]) => {
+    conf.append(el('button', {
+      class: 'btn' + (a.confidence === k ? ' selected' : ''),
+      'data-c': k,
+      onclick: () => { setAnswer(q, 'confidence', k); },
+    }, label));
+  });
+  main.append(el('div', { class: 'muted', style: 'margin-top:14px' }, '把握程度'));
+  main.append(conf);
+
+  bottom.append(el('button', { class: 'btn', disabled: st.current === 0, onclick: () => goTo(st.current - 1) }, '← 上一題'));
+  if (st.current < flat.length - 1) {
+    bottom.append(el('button', { class: 'btn primary', onclick: () => goTo(st.current + 1) }, '下一題 →'));
+  } else {
+    bottom.append(el('button', { class: 'btn primary', onclick: () => { stopClock(); view = 'overview'; render(); } }, '檢查並交卷'));
+  }
+}
+
+function setAnswer(q, field, value) {
+  const a = st.answers[q.id] || (st.answers[q.id] = { choice: null, confidence: null, timeMs: 0 });
+  a[field] = value;
+  saveState();
+  // 兩者都選好就自動跳下一題
+  const autoNext = a.choice != null && a.confidence != null && field === 'confidence' && st.current < flat.length - 1;
+  if (autoNext) setTimeout(() => goTo(st.current + 1), 180);
+  else render();
+}
+
+function renderOverview(main, bottom) {
+  const missing = flat.filter(q => !answered(q)).length;
+  main.append(el('h2', {}, '總覽'));
+  main.append(el('div', { class: 'muted' }, missing ? `還有 ${missing} 題沒有完成（沒選答案或沒選把握程度）。點題號可以回去作答。` : '全部完成了，可以交卷。'));
+  const grid = el('div', { class: 'grid-nav', style: 'margin-top:12px' });
+  flat.forEach((q, i) => {
+    grid.append(el('button', { class: (answered(q) ? 'done' : '') + (i === st.current ? ' current' : ''), onclick: () => goTo(i) }, String(i + 1)));
+  });
+  main.append(el('div', { class: 'card' }, grid));
+
+  const confirmBox = el('div', { class: 'card hidden', id: 'confirm' },
+    el('div', {}, missing ? `確定要交卷嗎？沒完成的 ${missing} 題會算錯。` : '確定要交卷嗎？'),
+    el('div', { class: 'row', style: 'margin-top:10px' },
+      el('button', { class: 'btn', onclick: () => confirmBox.classList.add('hidden') }, '取消'),
+      el('button', { class: 'btn primary', onclick: submit }, '確定交卷')));
+  main.append(confirmBox);
+
+  bottom.append(el('button', { class: 'btn', onclick: () => goTo(st.current) }, '← 回去作答'));
+  bottom.append(el('button', { class: 'btn primary', onclick: () => { confirmBox.classList.remove('hidden'); confirmBox.scrollIntoView({ behavior: 'smooth' }); } }, '交卷'));
+}
+
+// ---------- 交卷 ----------
+async function submit() {
+  stopClock();
+  const now = new Date();
+  const answers = flat.map(q => {
+    const a = st.answers[q.id] || {};
+    const gradable = q.answer != null;
+    return {
+      qid: q.id, tag: q.tag, topic: q.topic || null, blindspot: q.blindspot || null,
+      choice: a.choice ?? null, answer: q.answer ?? null,
+      correct: gradable ? a.choice === q.answer : null,
+      confidence: a.confidence || null,
+      timeSec: Math.round((a.timeMs || 0) / 1000),
+    };
+  });
+  const graded = answers.filter(a => a.correct != null);
+  const result = {
+    quizId, title: quiz.title,
+    startedAt: st.startedAt, submittedAt: now.toISOString(), device: deviceLabel(),
+    totalTimeSec: Math.round(activeMs() / 1000),
+    score: graded.filter(a => a.correct).length, graded: graded.length, total: answers.length,
+    answers,
+  };
+
+  const path = `results/${quizId}__${stamp(now)}.json`;
+  const text = JSON.stringify(result, null, 1);
+  Pending.add({ path, text, message: `result: ${quizId} ${result.score}/${result.graded}` });
+  store.set(RESULT_KEY, result);
+  store.remove(KEY);
+  const doneLocal = store.get('n2.doneLocal', []);
+  if (!doneLocal.includes(quizId)) store.set('n2.doneLocal', [...doneLocal, quizId]);
+
+  view = 'result';
+  clearInterval(timerHandle);
+  renderResult(result, '上傳中…');
+
+  let status;
+  if (!GH.hasToken()) {
+    status = '⚠ 尚未設定 token，結果只存在這台裝置。到首頁設定後會自動上傳。';
+  } else {
+    await Pending.flush();
+    status = Pending.list().some(p => p.path === path)
+      ? '⚠ 上傳失敗，結果先存在這台裝置。之後打開首頁會自動重試。'
+      : '✓ 已上傳到 GitHub，回家說「檢討」就可以了。';
+  }
+  renderResult(result, status);
+}
+
+function renderResult(result, uploadStatus) {
+  document.getElementById('topbar').classList.add('hidden');
+  const main = document.getElementById('main');
+  const bottom = document.getElementById('bottom');
+  main.innerHTML = '';
+  bottom.innerHTML = '';
+
+  main.append(el('h1', {}, quiz.title));
+  const pct = result.graded ? Math.round(result.score / result.graded * 100) : 0;
+  main.append(el('div', { class: 'card' },
+    result.graded
+      ? el('div', { class: 'score-big' }, `${result.score} / ${result.graded}`, el('span', { class: 'muted', style: 'font-size:1rem;margin-left:8px' }, `${pct}%`))
+      : el('div', {}, '這份是答案卡，會在檢討時對答案。'),
+    el('div', { class: 'muted' }, `用時 ${fmtDuration(result.totalTimeSec)}`),
+    el('div', { style: 'margin-top:8px' }, uploadStatus)));
+
+  // 各題型統計
+  const byTag = {};
+  result.answers.forEach(a => {
+    const t = byTag[a.tag] || (byTag[a.tag] = { n: 0, ok: 0, lucky: 0, time: 0 });
+    t.n++; t.time += a.timeSec;
+    if (a.correct) t.ok++;
+    if (a.correct && a.confidence !== 'sure') t.lucky++;
+  });
+  if (result.graded) {
+    const tbody = el('tbody');
+    for (const [tag, t] of Object.entries(byTag)) {
+      tbody.append(el('tr', {},
+        el('td', {}, tag),
+        el('td', { class: 'num' }, `${t.ok}/${t.n}`),
+        el('td', { class: 'num' }, t.lucky ? String(t.lucky) : '–'),
+        el('td', { class: 'num' }, `${Math.round(t.time / t.n)}s`)));
+    }
+    main.append(el('h2', {}, '各題型'));
+    main.append(el('div', { class: 'card table-scroll' }, el('table', { class: 'stats' },
+      el('thead', {}, el('tr', {}, el('th', {}, '題型'), el('th', {}, '答對'), el('th', {}, '猜對'), el('th', {}, '平均時間'))),
+      tbody)));
+  }
+
+  // 逐題簡易解
+  let onlyIssues = true;
+  const list = el('div');
+  const toggle = el('button', { class: 'btn small' });
+  function drawList() {
+    list.innerHTML = '';
+    toggle.textContent = onlyIssues ? '顯示全部題目' : '只看錯題和猜對';
+    flat.forEach((q, i) => {
+      const a = result.answers[i];
+      const lucky = a.correct && a.confidence !== 'sure';
+      if (onlyIssues && result.graded && a.correct && !lucky) return;
+      const cls = a.correct == null ? '' : !a.correct ? 'wrong' : lucky ? 'lucky' : 'right';
+      const mine = a.choice == null ? '（未作答）' : `${a.choice + 1}. ${q.choices[a.choice]}`;
+      const box = el('div', { class: 'card rev ' + cls },
+        el('div', { class: 'muted' }, `第 ${i + 1} 題・${q.tag}・`, el('span', {}, CONF_LABEL[a.confidence] || '未標記'), `・${a.timeSec}s`),
+        el('div', { class: 'prompt', style: 'font-size:1.05rem;margin:6px 0', html: q.prompt }),
+        el('div', { class: 'ans', html: `你的答案：${mine}` }));
+      if (q.answer != null) {
+        box.append(el('div', { class: 'ans', html: `正確答案：<b>${q.answer + 1}. ${q.choices[q.answer]}</b>` }));
+      }
+      if (q.explain) box.append(el('div', { class: 'explain', html: q.explain }));
+      list.append(box);
+    });
+    if (!list.children.length) list.append(el('div', { class: 'card muted' }, '全部答對而且都有把握 🎉'));
+  }
+  toggle.onclick = () => { onlyIssues = !onlyIssues; drawList(); };
+  main.append(el('div', { class: 'row', style: 'margin-top:24px' }, el('h2', { class: 'grow', style: 'margin:0' }, '簡易解'), toggle));
+  main.append(list);
+  drawList();
+
+  bottom.append(el('a', { class: 'btn primary', href: 'index.html' }, '回首頁'));
+  bottom.append(el('button', { class: 'btn', onclick: retake }, '重新作答'));
+}
+
+function retake() {
+  store.remove(RESULT_KEY);
+  location.reload();
+}
+
+// ---------- 啟動 ----------
+(async () => {
+  if (!quizId) { document.getElementById('main').textContent = '缺少題目 id'; return; }
+  try {
+    quiz = await fetchJson(`quizzes/${quizId}.json`);
+  } catch (e) {
+    document.getElementById('main').textContent = '讀取題目失敗：' + e.message;
+    return;
+  }
+  document.title = quiz.title;
+  quiz.sections.forEach((s, si) => s.questions.forEach(q => flat.push({ ...q, _s: si })));
+
+  const prevResult = store.get(RESULT_KEY, null);
+  if (prevResult) {
+    view = 'result';
+    renderResult(prevResult, Pending.list().some(p => p.path.includes(quizId + '__')) ? '⚠ 尚未上傳' : '');
+    return;
+  }
+
+  st = store.get(KEY, null) || { startedAt: new Date().toISOString(), current: 0, answers: {}, activeMs: 0 };
+  st.resumedAt = Date.now();
+  saveState();
+  document.getElementById('overview-btn').onclick = () => { stopClock(); view = 'overview'; render(); };
+  render();
+  startClock();
+  tickTimer();
+  timerHandle = setInterval(tickTimer, 1000);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+[
+  { "id": "2026-09-28-diagnostic", "title": "第1週 診斷測驗（言語知識・読解）", "type": "diagnostic", "created": "2026-09-27", "count": 54, "timeLimitMin": 70 },
+  { "id": "2026-09-28-backup-grammar1", "title": "備用A：第1週文法（逆接・讓步）", "type": "daily", "created": "2026-09-27", "count": 25, "timeLimitMin": 25 },
+  { "id": "2026-09-28-backup-vocab1", "title": "備用B：N2 語彙（讀音・寫法・用語）", "type": "daily", "created": "2026-09-27", "count": 25, "timeLimitMin": 20 }
+]

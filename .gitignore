@@ -1,0 +1,9 @@
+# 官方題本：受版權保護，只留在本機
+reference/
+
+.DS_Store
+Thumbs.db
+__pycache__/
+
+# Claude Code 本機設定
+.claude/

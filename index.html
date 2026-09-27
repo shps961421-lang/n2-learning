@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>N2 衝刺</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="wrap">
+  <h1>N2 衝刺</h1>
+  <div class="muted">目標 130 分（保底 110）・2026/12/6</div>
+
+  <div class="hero">
+    <div class="card stat">
+      <div class="muted">距離考試</div>
+      <div class="num" id="days">–</div>
+      <div class="muted">天</div>
+    </div>
+    <a class="card stat" href="cards.html" style="text-decoration:none;color:inherit">
+      <div class="muted">今天的 flashcard</div>
+      <div class="num" id="due">–</div>
+      <div class="muted" id="due-detail">張待複習 →</div>
+    </a>
+  </div>
+
+  <div id="pending-box" class="card hidden">
+    <div><b>有 <span id="pending-n"></span> 份作答結果還沒上傳</b></div>
+    <div class="muted">可能是當時沒有網路。按下面按鈕重新上傳。</div>
+    <div class="row" style="margin-top:8px"><button class="btn primary" id="flush">重新上傳</button></div>
+  </div>
+
+  <h2>題目</h2>
+  <div id="quizzes"><div class="muted">載入中…</div></div>
+
+  <h2>設定</h2>
+  <div class="card">
+    <div id="token-status" class="muted"></div>
+    <label for="token">GitHub token（只存在這台裝置的瀏覽器裡）</label>
+    <input type="password" id="token" autocomplete="off" placeholder="github_pat_...">
+    <details style="margin-top:8px">
+      <summary class="muted">進階：repo 位置</summary>
+      <label for="owner">owner</label>
+      <input type="text" id="owner">
+      <label for="repo">repo</label>
+      <input type="text" id="repo">
+    </details>
+    <div class="row" style="margin-top:12px">
+      <button class="btn primary" id="save">儲存</button>
+      <button class="btn" id="test">測試連線</button>
+    </div>
+  </div>
+</div>
+
+<script src="assets/common.js"></script>
+<script src="assets/srs.js"></script>
+<script>
+const TYPE_LABEL = { diagnostic: '診斷', daily: '每日', weekly: '週模考', mock: '模考', official: '官方' };
+
+function renderConfig() {
+  const cfg = getConfig();
+  document.getElementById('owner').value = cfg.owner;
+  document.getElementById('repo').value = cfg.repo;
+  document.getElementById('token').value = cfg.token;
+  document.getElementById('token-status').textContent = cfg.token
+    ? '✓ 已設定 token，作答結果會自動上傳。'
+    : '⚠ 尚未設定 token，作答結果只會存在這台裝置。';
+}
+
+document.getElementById('save').onclick = () => {
+  saveConfig({
+    owner: document.getElementById('owner').value.trim(),
+    repo: document.getElementById('repo').value.trim(),
+    token: document.getElementById('token').value.trim(),
+  });
+  renderConfig();
+  toast('已儲存');
+  loadQuizzes();
+};
+
+document.getElementById('test').onclick = async () => {
+  try {
+    await GH.testConnection();
+    toast('✓ 連線成功，可以寫入');
+  } catch (e) {
+    toast('✗ ' + e.message, 4000);
+  }
+};
+
+document.getElementById('flush').onclick = async () => {
+  const n = await Pending.flush();
+  toast(`已上傳 ${n} 份`);
+  renderPending();
+  loadQuizzes();
+};
+
+function renderPending() {
+  const n = Pending.list().length;
+  document.getElementById('pending-box').classList.toggle('hidden', n === 0);
+  document.getElementById('pending-n').textContent = n;
+}
+
+async function loadQuizzes() {
+  const box = document.getElementById('quizzes');
+  let list;
+  try {
+    list = await fetchJson('quizzes/index.json');
+  } catch (e) {
+    box.innerHTML = '';
+    box.append(el('div', { class: 'card' }, '讀取題目清單失敗：' + e.message));
+    return;
+  }
+
+  // 完成狀態：GitHub 上的結果 + 本機紀錄
+  const done = {};
+  try {
+    for (const f of await GH.listDir('results')) {
+      const id = f.name.split('__')[0];
+      done[id] = (done[id] || 0) + 1;
+    }
+  } catch (e) {}
+  for (const id of store.get('n2.doneLocal', [])) done[id] = done[id] || 1;
+
+  box.innerHTML = '';
+  for (const q of list) {
+    const inProgress = store.get('n2.quiz.' + q.id, null);
+    let status;
+    if (done[q.id]) status = el('span', { class: 'badge ok' }, '已完成');
+    else if (inProgress) status = el('span', { class: 'badge warn' }, '作答中');
+    else status = el('span', { class: 'badge' }, '未做');
+
+    box.append(el('div', { class: 'card quiz-item' },
+      el('div', { class: 'grow' },
+        el('div', { class: 'title' }, q.title),
+        el('div', { class: 'muted' },
+          `${TYPE_LABEL[q.type] || q.type}・${q.count} 題` + (q.timeLimitMin ? `・建議 ${q.timeLimitMin} 分鐘` : '') + ' ',
+          status)),
+      el('a', { class: 'btn ' + (done[q.id] ? '' : 'primary'), href: `quiz.html?id=${encodeURIComponent(q.id)}` },
+        done[q.id] ? '再看一次' : inProgress ? '繼續' : '開始')));
+  }
+}
+
+async function loadDue() {
+  try {
+    const deck = await fetchJson('cards/deck.json');
+    const state = SRS.loadLocal();
+    const q = SRS.buildQueue(deck, state);
+    document.getElementById('due').textContent = q.due.length + q.fresh.length;
+    document.getElementById('due-detail').textContent = `複習 ${q.due.length}・新卡 ${q.fresh.length} →`;
+  } catch (e) {}
+}
+
+document.getElementById('days').textContent = daysUntilExam();
+renderConfig();
+renderPending();
+loadQuizzes();
+loadDue();
+if (Pending.list().length && GH.hasToken()) Pending.flush().then(() => { renderPending(); loadQuizzes(); });
+</script>
+</body>
+</html>

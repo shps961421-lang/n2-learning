@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>N2 Flashcard</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="row">
+    <a href="index.html" class="btn small">← 首頁</a>
+    <div class="grow"></div>
+    <span class="muted" id="counter"></span>
+    <button class="btn small" id="sync">同步</button>
+  </div>
+
+  <div id="stage"><div class="card muted">載入中…</div></div>
+</div>
+
+<div class="bottombar" id="bar"><div class="inner" id="bar-inner"></div></div>
+
+<script src="assets/common.js"></script>
+<script src="assets/srs.js"></script>
+<script>
+const TYPE_LABEL = { grammar: '文法', 'vocab-read': '讀音', 'vocab-write': '寫法' };
+let deck = [], state, queue = [], current = null, shown = false, reviewedSinceSync = 0, done = 0;
+
+async function doSync(silent) {
+  try {
+    const r = await SRS.sync();
+    state = SRS.loadLocal();
+    reviewedSinceSync = 0;
+    if (!silent) toast(r.ok ? '✓ 已同步' : r.reason === 'no-token' ? '未設定 token，只存在本機' : '同步衝突，請再試一次');
+  } catch (e) {
+    if (!silent) toast('同步失敗：' + e.message, 4000);
+  }
+}
+
+document.getElementById('sync').onclick = () => doSync(false);
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden' && reviewedSinceSync > 0) doSync(true);
+});
+
+function counter() {
+  document.getElementById('counter').textContent = `剩 ${queue.length + (current ? 1 : 0)}・已完成 ${done}`;
+}
+
+function next() {
+  current = queue.shift() || null;
+  shown = false;
+  render();
+}
+
+function render() {
+  counter();
+  const stage = document.getElementById('stage');
+  const bar = document.getElementById('bar-inner');
+  stage.innerHTML = '';
+  bar.innerHTML = '';
+
+  if (!current) {
+    stage.append(el('div', { class: 'card fc' },
+      el('div', { class: 'front' }, '🎉'),
+      el('p', {}, done ? `今天的卡片完成了（${done} 張）` : '目前沒有需要複習的卡片'),
+      el('p', { class: 'muted' }, '明天再來。')));
+    bar.append(el('a', { class: 'btn primary', href: 'index.html' }, '回首頁'));
+    if (reviewedSinceSync > 0) doSync(true);
+    return;
+  }
+
+  const s = state.cards[current.id];
+  const isNew = !s;
+  const card = el('div', { class: 'card fc' },
+    el('div', { class: 'muted' },
+      el('span', { class: 'badge' }, TYPE_LABEL[current.type] || current.type), ' ',
+      isNew ? el('span', { class: 'badge warn' }, '新卡') : null),
+    el('div', { class: 'front', html: current.front }));
+  if (shown) card.append(el('div', { class: 'back', html: current.back }));
+  stage.append(card);
+
+  if (!shown) {
+    bar.append(el('button', { class: 'btn primary', onclick: () => { shown = true; render(); } }, '顯示答案'));
+  } else {
+    const rate = el('div', { class: 'rate grow' });
+    [['again', 0, '忘了'], ['hard', 1, '模糊'], ['good', 2, '記得']].forEach(([cls, r, label]) => {
+      rate.append(el('button', { class: 'btn ' + cls, onclick: () => answer(r) },
+        label, el('small', {}, SRS.previewLabel(s, r))));
+    });
+    bar.append(rate);
+  }
+}
+
+function answer(rating) {
+  const prev = state.cards[current.id];
+  if (!prev) {
+    const today = localDateKey();
+    state.newByDay[today] = (state.newByDay[today] || 0) + 1;
+  }
+  state.cards[current.id] = SRS.schedule(prev, rating);
+  SRS.saveLocal(state);
+  reviewedSinceSync++;
+  if (rating === 0) queue.push(current); // 忘了的卡片本輪最後再出現一次
+  else done++;
+  if (reviewedSinceSync >= 10) doSync(true);
+  next();
+}
+
+(async () => {
+  try {
+    deck = await fetchJson('cards/deck.json');
+  } catch (e) {
+    document.getElementById('stage').innerHTML = '';
+    document.getElementById('stage').append(el('div', { class: 'card' }, '讀取卡片失敗：' + e.message));
+    return;
+  }
+  await doSync(true);
+  state = SRS.loadLocal();
+  const q = SRS.buildQueue(deck, state);
+  queue = [...q.due, ...q.fresh];
+  next();
+})();
+</script>
+</body>
+</html>
