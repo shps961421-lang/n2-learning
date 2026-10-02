@@ -1,0 +1,147 @@
+{
+ "quizId": "2026-10-02-diag2",
+ "title": "診斷 2｜文脈規定・言い換え・用法",
+ "cat": "A",
+ "focus": "ok",
+ "startedAt": "2026-10-02T10:23:19.229Z",
+ "submittedAt": "2026-10-02T10:26:09.600Z",
+ "device": "desktop",
+ "totalTimeSec": 163,
+ "score": 10,
+ "graded": 12,
+ "total": 12,
+ "answers": [
+  {
+   "qid": "q14",
+   "tag": "文脈規定",
+   "topic": "びっしょり",
+   "blindspot": null,
+   "choice": 1,
+   "answer": 1,
+   "correct": true,
+   "confidence": "sure",
+   "timeSec": 11
+  },
+  {
+   "qid": "q15",
+   "tag": "文脈規定",
+   "topic": "弁解",
+   "blindspot": null,
+   "choice": 3,
+   "answer": 3,
+   "correct": true,
+   "confidence": "sure",
+   "timeSec": 8
+  },
+  {
+   "qid": "q16",
+   "tag": "文脈規定",
+   "topic": "不可欠",
+   "blindspot": null,
+   "choice": 3,
+   "answer": 3,
+   "correct": true,
+   "confidence": "sure",
+   "timeSec": 5
+  },
+  {
+   "qid": "q17",
+   "tag": "文脈規定",
+   "topic": "上回る",
+   "blindspot": null,
+   "choice": 0,
+   "answer": 0,
+   "correct": true,
+   "confidence": "sure",
+   "timeSec": 14
+  },
+  {
+   "qid": "q18",
+   "tag": "文脈規定",
+   "topic": "あいまい",
+   "blindspot": null,
+   "choice": 2,
+   "answer": 2,
+   "correct": true,
+   "confidence": "sure",
+   "timeSec": 13
+  },
+  {
+   "qid": "q19",
+   "tag": "言い換え",
+   "topic": "たちまち",
+   "blindspot": null,
+   "choice": 2,
+   "answer": 2,
+   "correct": true,
+   "confidence": "sure",
+   "timeSec": 14
+  },
+  {
+   "qid": "q20",
+   "tag": "言い換え",
+   "topic": "見合わせる",
+   "blindspot": null,
+   "choice": 3,
+   "answer": 3,
+   "correct": true,
+   "confidence": "sure",
+   "timeSec": 8
+  },
+  {
+   "qid": "q21",
+   "tag": "言い換え",
+   "topic": "ありふれた",
+   "blindspot": null,
+   "choice": 3,
+   "answer": 3,
+   "correct": true,
+   "confidence": "sure",
+   "timeSec": 9
+  },
+  {
+   "qid": "q22",
+   "tag": "言い換え",
+   "topic": "ひたすら",
+   "blindspot": null,
+   "choice": 2,
+   "answer": 3,
+   "correct": false,
+   "confidence": "unknown",
+   "timeSec": 20
+  },
+  {
+   "qid": "q23",
+   "tag": "用法",
+   "topic": "手際",
+   "blindspot": null,
+   "choice": 0,
+   "answer": 0,
+   "correct": true,
+   "confidence": "sure",
+   "timeSec": 11
+  },
+  {
+   "qid": "q24",
+   "tag": "用法",
+   "topic": "差し支える",
+   "blindspot": null,
+   "choice": 0,
+   "answer": 1,
+   "correct": false,
+   "confidence": "sure",
+   "timeSec": 32
+  },
+  {
+   "qid": "q25",
+   "tag": "用法",
+   "topic": "まちまち",
+   "blindspot": null,
+   "choice": 2,
+   "answer": 2,
+   "correct": true,
+   "confidence": "sure",
+   "timeSec": 12
+  }
+ ]
+}
