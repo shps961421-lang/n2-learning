@@ -6,16 +6,22 @@
 ## 學生資料
 - 考試：**2026/12/6**。前次 N2 成績 **74 分**，各科平均偏弱。
 - 目標：**衝刺 130 分，保底 110 分，每科 35 分以上**。
-- 時間：平日約 2 小時，週末一天約 3 小時。
+- 時間：每天 flashcard ＋ 1 份短測驗 ＋ 晚上檢討；週末一天做週模考。單次作答太久會分心，所以每份題目要短。
 - 通勤時在手機上作答和刷 flashcard，晚上回家在這裡檢討。
 
 ## 已經決定的規則（不要重新討論）
-- 出題比例：**50% 盲點題（換一種方式出，不重複原題）/ 20% 舊盲點複習 / 30% 新範圍**。
+- **短測驗、A／B 交替**（2026/10/2 調整：學生單次作答太久會分心）：
+  - **A 語言知識**：15 題（單字 8 ＋ 文法 7），約 15 分鐘。`cat: "A"`。
+  - **B 讀解**：2 篇（短文 1 ＋ 中文 1，約 6～8 題），約 20 分鐘。`cat: "B"`。
+  - 一天先做 1 份。網站上**隨時保有還沒做的 A 2 份 ＋ B 2 份**，每次檢討後補足。
+- 出題比例以**多份題目合計**計算：**50% 盲點題（換一種方式出，不重複原題）/ 20% 舊盲點複習 / 30% 新範圍**。
+- **新文法由 flashcard 教**：每週把 `notes/grammar-syllabus.md` 當週的約 30 個文法做成卡片（第 6 週前教完）。A 份的文法題主要考**已經進入 flashcard 的文法**。
 - 盲點**連續答對 3 次** → `status: "resolved"`，只留在 flashcard。
 - 題目 100% 日文；`explain` 用繁體中文，文法語感附日文。第 7 週後詢問是否改成日文解說。
-- 平日題目 25～30 題；週末有計時的週模考（約 50～60 題）。
-- 隨時保有 **2 份還沒做的備用題目**。
-- flashcard 每天新卡片上限 20 張（網站自動控制）。
+- **週模考逐步拉長**（`cat: "M"`）：第 2 週約 30 分鐘（約 25 題）→ 第 3–4 週約 50 分鐘 → 第 5 週約 75 分鐘 → 第 6 週起 105 分鐘全長。若結果的 `focus` 為 `drifted`，下週維持原本長度。
+- **加量檢查**（每週日，第一次 10/11）：7 天中有 5 天以上完成題目，且大部分 `focus` 不是 `drifted` → 改成一天 A、B 各 1 份。結論寫進 `notes/progress.md`。
+- 第 1 週：診斷測驗拆成 5 份（`2026-10-02-diag1`～`diag5`），代替當週的週模考。5 份都檢討完才開始出 A／B 題目。
+- flashcard 每天新卡片上限 20 張（網站自動控制），每天都做，不跟著 A／B 輪替。
 - 官方題本在 `reference/`，**絕不 commit、絕不把原題抄進 repo**。公開 repo 只放原創題。
 - 第 6 週（11/2–11/8）做第一集（2012），第 8 週（11/16–11/22）做第二集（2018）。
 - 聽解從第 4 週（10/19）開始：Claude 寫腳本 → `edge-tts`（ja-JP-NanamiNeural / ja-JP-KeitaNeural）產生 MP3 → 放在 `audio/`。失效時改用瀏覽器朗讀。
@@ -24,7 +30,7 @@
 學生說「檢討」時，照順序執行：
 
 1. `git pull`，找出 `results/` 裡還沒檢討過的檔案（比對 `notes/progress.md` 的「已檢討」清單）。
-2. **報告**（簡短）：分數、各題型正確率、作答時間特別長的題目（`timeSec` 超過該題型平均 2 倍）、**猜對的題目**（`confidence` 為 `guess` 或 `unknown` 但答對）。
+2. **報告**（簡短）：分數、各題型正確率、作答時間特別長的題目（`timeSec` 超過該題型平均 2 倍）、**猜對的題目**（`confidence` 為 `guess` 或 `unknown` 但答對）、**專注度**（`focus`）。
 3. **逐題討論**：只看「答錯」和「猜對」的題目。**一次一題**：
    - 先問「當時為什麼選這個？」，**等學生回答**，再講解。
    - 判斷盲點的類型：不認識這個字、認識但混淆、文法接續錯誤、讀解沒抓到關鍵句、時間不夠……
@@ -33,24 +39,29 @@
    - `notes/blindspots.json`：新增或更新盲點（`misses`、`streak`、`lastSeen`、`sources`）。本次答對的舊盲點 `streak + 1`，答錯則 `streak = 0`。
    - `cards/deck.json`：為新的盲點建立卡片（id 不可重複，已存在的卡片不要改 id）。
    - `notes/progress.md`：把結果檔加進「已檢討」清單，寫下當天的重點和學生問的問題。
-5. **出題**：依照比例產生下一份題目，放進 `quizzes/`，更新 `quizzes/index.json`，補足 2 份備用題目。
+5. **出題**：依照比例產生題目，放進 `quizzes/`，更新 `quizzes/index.json`，補足到**還沒做的 A 2 份 ＋ B 2 份**。已經做完的題目留在 index 裡（首頁會自動收合到「已完成」）。
 6. `git add -A && git commit && git push`。告訴學生明天要做哪一份題目。
 
 ## 週末流程
-週模考檢討結束後，更新 `notes/progress.md` 的週次表（分數趨勢、各題型正確率），推進文法進度表（`notes/grammar-syllabus.md`），並寫下下週的重點。
+週模考檢討結束後：
+1. 更新 `notes/progress.md` 的週次表（分數趨勢、各題型正確率、專注度）。
+2. 做**加量檢查**，把結論寫進 progress.md。
+3. 推進文法進度表（`notes/grammar-syllabus.md`），把**下週的約 30 個文法**做成 flashcard。
+4. 出下週的週模考（長度依照上面的規則），寫下下週的重點。
 
 ## 檔案格式
 
 ### `quizzes/index.json`
 ```json
-[{ "id": "2026-09-28-diagnostic", "title": "...", "type": "diagnostic|daily|weekly|mock|official", "created": "2026-09-27", "count": 54, "timeLimitMin": 70 }]
+[{ "id": "2026-10-05-a1", "title": "...", "type": "diagnostic|daily|weekly|mock|official", "cat": "A|B|M", "created": "2026-10-04", "count": 15, "timeLimitMin": 15 }]
 ```
-依時間**新到舊**排列。
+依時間**舊到新**排列（新的加在最後）。首頁會把還沒做的放上面，並依照最近一次做的 A／B 推薦下一份。
+`quizzes/archive/` 放不再列在首頁的舊題目（第 1 週原本 25 題規格的備用題），出 A 份題目時可以拿裡面的題目來改寫。
 
 ### `quizzes/<id>.json`
 ```json
 {
-  "id": "2026-09-28-daily", "title": "...", "type": "daily", "timeLimitMin": 40,
+  "id": "2026-10-05-a1", "title": "...", "type": "daily", "cat": "A", "timeLimitMin": 15,
   "sections": [{
     "title": "問題1 漢字読み",
     "instructions": "＿＿の言葉の読み方として最もよいものを、1・2・3・4から一つ選びなさい。",
@@ -74,7 +85,7 @@
 
 ### `results/<quizId>__<stamp>.json`（網站自動寫入）
 ```json
-{ "quizId": "...", "startedAt": "...", "submittedAt": "...", "device": "...", "totalTimeSec": 1234,
+{ "quizId": "...", "cat": "A", "focus": "focused|ok|drifted", "startedAt": "...", "submittedAt": "...", "device": "...", "totalTimeSec": 1234,
   "score": 40, "graded": 54, "total": 54,
   "answers": [{ "qid": "q1", "tag": "...", "topic": "...", "blindspot": null, "choice": 2, "answer": 0, "correct": false, "confidence": "sure|guess|unknown", "timeSec": 18 }] }
 ```

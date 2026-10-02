@@ -1,5 +1,47 @@
 [
-  { "id": "2026-09-28-diagnostic", "title": "第1週 診斷測驗（言語知識・読解）", "type": "diagnostic", "created": "2026-09-27", "count": 54, "timeLimitMin": 70 },
-  { "id": "2026-09-28-backup-grammar1", "title": "備用A：第1週文法（逆接・讓步）", "type": "daily", "created": "2026-09-27", "count": 25, "timeLimitMin": 25 },
-  { "id": "2026-09-28-backup-vocab1", "title": "備用B：N2 語彙（讀音・寫法・用語）", "type": "daily", "created": "2026-09-27", "count": 25, "timeLimitMin": 20 }
+  {
+    "id": "2026-10-02-diag1",
+    "title": "診斷 1｜漢字讀法・表記・語形成",
+    "type": "diagnostic",
+    "cat": "A",
+    "created": "2026-10-02",
+    "count": 13,
+    "timeLimitMin": 10
+  },
+  {
+    "id": "2026-10-02-diag2",
+    "title": "診斷 2｜文脈規定・言い換え・用法",
+    "type": "diagnostic",
+    "cat": "A",
+    "created": "2026-10-02",
+    "count": 12,
+    "timeLimitMin": 12
+  },
+  {
+    "id": "2026-10-02-diag3",
+    "title": "診斷 3｜文法・句子重組・文章文法",
+    "type": "diagnostic",
+    "cat": "A",
+    "created": "2026-10-02",
+    "count": 18,
+    "timeLimitMin": 18
+  },
+  {
+    "id": "2026-10-02-diag4",
+    "title": "診斷 4｜短文 2 篇・中文 1 篇",
+    "type": "diagnostic",
+    "cat": "B",
+    "created": "2026-10-02",
+    "count": 5,
+    "timeLimitMin": 15
+  },
+  {
+    "id": "2026-10-02-diag5",
+    "title": "診斷 5｜統合・主張・資訊檢索",
+    "type": "diagnostic",
+    "cat": "B",
+    "created": "2026-10-02",
+    "count": 6,
+    "timeLimitMin": 18
+  }
 ]

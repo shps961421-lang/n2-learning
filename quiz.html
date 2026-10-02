@@ -27,6 +27,7 @@
 <script>
 const CONF = [['sure', '確定'], ['guess', '猜的'], ['unknown', '不會']];
 const CONF_LABEL = Object.fromEntries(CONF);
+const FOCUS = [['focused', '很專注', 'sure'], ['ok', '還好', 'guess'], ['drifted', '後半段分心', 'unknown']];
 const quizId = new URLSearchParams(location.search).get('id');
 const KEY = 'n2.quiz.' + quizId;
 const RESULT_KEY = 'n2.result.' + quizId;
@@ -160,11 +161,26 @@ function renderOverview(main, bottom) {
   });
   main.append(el('div', { class: 'card' }, grid));
 
+  const submitBtn = el('button', { class: 'btn primary', disabled: !st.focus, onclick: submit }, '確定交卷');
+  const focusRow = el('div', { class: 'confidence' });
+  FOCUS.forEach(([k, label, c]) => {
+    focusRow.append(el('button', {
+      class: 'btn' + (st.focus === k ? ' selected' : ''), 'data-c': c,
+      onclick: () => {
+        st.focus = k;
+        saveState();
+        focusRow.querySelectorAll('.btn').forEach(b => b.classList.toggle('selected', b.textContent === label));
+        submitBtn.disabled = false;
+      },
+    }, label));
+  });
   const confirmBox = el('div', { class: 'card hidden', id: 'confirm' },
     el('div', {}, missing ? `確定要交卷嗎？沒完成的 ${missing} 題會算錯。` : '確定要交卷嗎？'),
+    el('div', { class: 'muted', style: 'margin-top:10px' }, '這次專注度如何？'),
+    focusRow,
     el('div', { class: 'row', style: 'margin-top:10px' },
       el('button', { class: 'btn', onclick: () => confirmBox.classList.add('hidden') }, '取消'),
-      el('button', { class: 'btn primary', onclick: submit }, '確定交卷')));
+      submitBtn));
   main.append(confirmBox);
 
   bottom.append(el('button', { class: 'btn', onclick: () => goTo(st.current) }, '← 回去作答'));
@@ -188,7 +204,7 @@ async function submit() {
   });
   const graded = answers.filter(a => a.correct != null);
   const result = {
-    quizId, title: quiz.title,
+    quizId, title: quiz.title, cat: quiz.cat || null, focus: st.focus || null,
     startedAt: st.startedAt, submittedAt: now.toISOString(), device: deviceLabel(),
     totalTimeSec: Math.round(activeMs() / 1000),
     score: graded.filter(a => a.correct).length, graded: graded.length, total: answers.length,
@@ -202,6 +218,7 @@ async function submit() {
   store.remove(KEY);
   const doneLocal = store.get('n2.doneLocal', []);
   if (!doneLocal.includes(quizId)) store.set('n2.doneLocal', [...doneLocal, quizId]);
+  if (quiz.cat) store.set('n2.lastDone', { id: quizId, cat: quiz.cat, at: now.toISOString() });
 
   view = 'result';
   clearInterval(timerHandle);

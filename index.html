@@ -56,6 +56,7 @@
 <script src="assets/srs.js"></script>
 <script>
 const TYPE_LABEL = { diagnostic: '診斷', daily: '每日', weekly: '週模考', mock: '模考', official: '官方' };
+const CAT_LABEL = { A: 'A 語言知識', B: 'B 讀解', M: '模考' };
 
 function renderConfig() {
   const cfg = getConfig();
@@ -111,32 +112,55 @@ async function loadQuizzes() {
     return;
   }
 
-  // 完成狀態：GitHub 上的結果 + 本機紀錄
+  // 完成狀態：GitHub 上的結果 + 本機紀錄；同時找出最近一次做的是 A 還是 B
   const done = {};
+  const catOf = Object.fromEntries(list.map(q => [q.id, q.cat]));
+  let lastCat = null, lastStamp = '';
   try {
     for (const f of await GH.listDir('results')) {
-      const id = f.name.split('__')[0];
+      const [id, st] = f.name.replace(/\.json$/, '').split('__');
+      if (!st) continue;
       done[id] = (done[id] || 0) + 1;
+      if (st > lastStamp && catOf[id]) { lastStamp = st; lastCat = catOf[id]; }
     }
   } catch (e) {}
   for (const id of store.get('n2.doneLocal', [])) done[id] = done[id] || 1;
+  const localLast = store.get('n2.lastDone', null);
+  if (localLast && stamp(new Date(localLast.at)) > lastStamp) lastCat = localLast.cat;
 
-  box.innerHTML = '';
-  for (const q of list) {
+  const todo = list.filter(q => !done[q.id]);
+  const finished = list.filter(q => done[q.id]);
+  const wantCat = lastCat === 'A' ? 'B' : lastCat === 'B' ? 'A' : null;
+  const suggested = todo.find(q => store.get('n2.quiz.' + q.id, null))
+    || (wantCat && todo.find(q => q.cat === wantCat))
+    || todo[0];
+
+  function item(q) {
     const inProgress = store.get('n2.quiz.' + q.id, null);
     let status;
     if (done[q.id]) status = el('span', { class: 'badge ok' }, '已完成');
     else if (inProgress) status = el('span', { class: 'badge warn' }, '作答中');
-    else status = el('span', { class: 'badge' }, '未做');
-
-    box.append(el('div', { class: 'card quiz-item' },
+    else if (q === suggested) status = el('span', { class: 'badge warn' }, '建議下一份');
+    else status = null;
+    return el('div', { class: 'card quiz-item' },
       el('div', { class: 'grow' },
-        el('div', { class: 'title' }, q.title),
+        el('div', { class: 'title' },
+          q.cat ? el('span', { class: 'badge' + (q.cat === 'B' ? ' ok' : '') }, CAT_LABEL[q.cat] || q.cat) : null, ' ', q.title),
         el('div', { class: 'muted' },
-          `${TYPE_LABEL[q.type] || q.type}・${q.count} 題` + (q.timeLimitMin ? `・建議 ${q.timeLimitMin} 分鐘` : '') + ' ',
+          `${TYPE_LABEL[q.type] || q.type}・${q.count} 題` + (q.timeLimitMin ? `・約 ${q.timeLimitMin} 分鐘` : '') + ' ',
           status)),
       el('a', { class: 'btn ' + (done[q.id] ? '' : 'primary'), href: `quiz.html?id=${encodeURIComponent(q.id)}` },
-        done[q.id] ? '再看一次' : inProgress ? '繼續' : '開始')));
+        done[q.id] ? '再看一次' : inProgress ? '繼續' : '開始'));
+  }
+
+  box.innerHTML = '';
+  if (!todo.length) box.append(el('div', { class: 'card muted' }, '題目都做完了！回到電腦說「檢討」，就會出新的題目。'));
+  if (suggested) box.append(item(suggested));
+  todo.filter(q => q !== suggested).forEach(q => box.append(item(q)));
+  if (finished.length) {
+    const det = el('details', { style: 'margin-top:12px' }, el('summary', { class: 'muted' }, `已完成（${finished.length}）`));
+    finished.slice().reverse().forEach(q => det.append(item(q)));
+    box.append(det);
   }
 }
 
