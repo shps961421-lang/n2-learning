@@ -1,0 +1,213 @@
+{
+ "quizId": "2026-10-02-diag3",
+ "title": "診斷 3｜文法・句子重組・文章文法",
+ "cat": "A",
+ "focus": "drifted",
+ "startedAt": "2026-10-02T12:41:14.800Z",
+ "submittedAt": "2026-10-02T18:09:08.779Z",
+ "device": "desktop",
+ "totalTimeSec": 1261,
+ "score": 10,
+ "graded": 18,
+ "total": 18,
+ "answers": [
+  {
+   "qid": "q26",
+   "tag": "文法形式",
+   "topic": "にもかかわらず",
+   "blindspot": null,
+   "choice": 1,
+   "answer": 1,
+   "correct": true,
+   "confidence": "guess",
+   "timeSec": 45
+  },
+  {
+   "qid": "q27",
+   "tag": "文法形式",
+   "topic": "からには",
+   "blindspot": null,
+   "choice": 2,
+   "answer": 0,
+   "correct": false,
+   "confidence": "unknown",
+   "timeSec": 24
+  },
+  {
+   "qid": "q28",
+   "tag": "文法形式",
+   "topic": "あげく",
+   "blindspot": null,
+   "choice": 0,
+   "answer": 0,
+   "correct": true,
+   "confidence": "guess",
+   "timeSec": 33
+  },
+  {
+   "qid": "q29",
+   "tag": "文法形式",
+   "topic": "とおり",
+   "blindspot": null,
+   "choice": 1,
+   "answer": 1,
+   "correct": true,
+   "confidence": "guess",
+   "timeSec": 7
+  },
+  {
+   "qid": "q30",
+   "tag": "文法形式",
+   "topic": "次第",
+   "blindspot": null,
+   "choice": 1,
+   "answer": 2,
+   "correct": false,
+   "confidence": "sure",
+   "timeSec": 15
+  },
+  {
+   "qid": "q31",
+   "tag": "文法形式",
+   "topic": "ようが〜まいが",
+   "blindspot": null,
+   "choice": 1,
+   "answer": 0,
+   "correct": false,
+   "confidence": "unknown",
+   "timeSec": 62
+  },
+  {
+   "qid": "q32",
+   "tag": "文法形式",
+   "topic": "からすれば",
+   "blindspot": null,
+   "choice": 0,
+   "answer": 0,
+   "correct": true,
+   "confidence": "unknown",
+   "timeSec": 13
+  },
+  {
+   "qid": "q33",
+   "tag": "文法形式",
+   "topic": "ものの",
+   "blindspot": null,
+   "choice": 2,
+   "answer": 2,
+   "correct": true,
+   "confidence": "guess",
+   "timeSec": 137
+  },
+  {
+   "qid": "q34",
+   "tag": "文法形式",
+   "topic": "ほど",
+   "blindspot": null,
+   "choice": 0,
+   "answer": 3,
+   "correct": false,
+   "confidence": "sure",
+   "timeSec": 58
+  },
+  {
+   "qid": "q35",
+   "tag": "文法形式",
+   "topic": "敬語（拝見）",
+   "blindspot": null,
+   "choice": 1,
+   "answer": 3,
+   "correct": false,
+   "confidence": "sure",
+   "timeSec": 30
+  },
+  {
+   "qid": "q36",
+   "tag": "文の組み立て",
+   "topic": "にかけては",
+   "blindspot": null,
+   "choice": 3,
+   "answer": 0,
+   "correct": false,
+   "confidence": "sure",
+   "timeSec": 47
+  },
+  {
+   "qid": "q37",
+   "tag": "文の組み立て",
+   "topic": "さえ〜ほど",
+   "blindspot": null,
+   "choice": 2,
+   "answer": 2,
+   "correct": true,
+   "confidence": "unknown",
+   "timeSec": 303
+  },
+  {
+   "qid": "q38",
+   "tag": "文の組み立て",
+   "topic": "どころではない",
+   "blindspot": null,
+   "choice": 2,
+   "answer": 2,
+   "correct": true,
+   "confidence": "guess",
+   "timeSec": 151
+  },
+  {
+   "qid": "q39",
+   "tag": "文の組み立て",
+   "topic": "覚悟で",
+   "blindspot": null,
+   "choice": 2,
+   "answer": 2,
+   "correct": true,
+   "confidence": "sure",
+   "timeSec": 55
+  },
+  {
+   "qid": "q40",
+   "tag": "文章の文法",
+   "topic": "接続詞（ところが）",
+   "blindspot": null,
+   "choice": 3,
+   "answer": 3,
+   "correct": true,
+   "confidence": "guess",
+   "timeSec": 248
+  },
+  {
+   "qid": "q41",
+   "tag": "文章の文法",
+   "topic": "なのに",
+   "blindspot": null,
+   "choice": 0,
+   "answer": 3,
+   "correct": false,
+   "confidence": "guess",
+   "timeSec": 14
+  },
+  {
+   "qid": "q42",
+   "tag": "文章の文法",
+   "topic": "ように思う",
+   "blindspot": null,
+   "choice": 3,
+   "answer": 3,
+   "correct": true,
+   "confidence": "unknown",
+   "timeSec": 3
+  },
+  {
+   "qid": "q43",
+   "tag": "文章の文法",
+   "topic": "文脈（結論）",
+   "blindspot": null,
+   "choice": 3,
+   "answer": 2,
+   "correct": false,
+   "confidence": "unknown",
+   "timeSec": 4
+  }
+ ]
+}
