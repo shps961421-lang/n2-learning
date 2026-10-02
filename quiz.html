@@ -224,15 +224,10 @@ async function submit() {
   clearInterval(timerHandle);
   renderResult(result, '上傳中…');
 
-  let status;
-  if (!GH.hasToken()) {
-    status = '⚠ 尚未設定 token，結果只存在這台裝置。到首頁設定後會自動上傳。';
-  } else {
-    await Pending.flush();
-    status = Pending.list().some(p => p.path === path)
-      ? '⚠ 上傳失敗，結果先存在這台裝置。之後打開首頁會自動重試。'
-      : '✓ 已上傳到 GitHub，回家說「檢討」就可以了。';
-  }
+  await Pending.flush();
+  const status = Pending.list().some(p => p.path === path)
+    ? `⚠ 上傳失敗，結果先存在這台裝置。原因：${Pending.lastError() || '不明'}。處理好之後到首頁按「重新上傳」。`
+    : '✓ 已上傳到 GitHub，回家說「檢討」就可以了。';
   renderResult(result, status);
 }
 

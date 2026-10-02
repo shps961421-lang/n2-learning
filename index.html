@@ -26,7 +26,7 @@
 
   <div id="pending-box" class="card hidden">
     <div><b>有 <span id="pending-n"></span> 份作答結果還沒上傳</b></div>
-    <div class="muted">可能是當時沒有網路。按下面按鈕重新上傳。</div>
+    <div class="muted" id="pending-reason">按下面按鈕重新上傳。</div>
     <div class="row" style="margin-top:8px"><button class="btn primary" id="flush">重新上傳</button></div>
   </div>
 
@@ -76,7 +76,8 @@ document.getElementById('save').onclick = () => {
   });
   renderConfig();
   toast('已儲存');
-  loadQuizzes();
+  if (Pending.list().length) Pending.flush().then(() => { renderPending(); loadQuizzes(); });
+  else loadQuizzes();
 };
 
 document.getElementById('test').onclick = async () => {
@@ -90,7 +91,7 @@ document.getElementById('test').onclick = async () => {
 
 document.getElementById('flush').onclick = async () => {
   const n = await Pending.flush();
-  toast(`已上傳 ${n} 份`);
+  toast(Pending.list().length ? '✗ 上傳失敗，原因寫在上面' : `✓ 已上傳 ${n} 份`, 4000);
   renderPending();
   loadQuizzes();
 };
@@ -99,6 +100,10 @@ function renderPending() {
   const n = Pending.list().length;
   document.getElementById('pending-box').classList.toggle('hidden', n === 0);
   document.getElementById('pending-n').textContent = n;
+  const err = Pending.lastError();
+  document.getElementById('pending-reason').textContent = err
+    ? `原因：${err}。處理好之後按下面按鈕重新上傳。`
+    : '按下面按鈕重新上傳。';
 }
 
 async function loadQuizzes() {
@@ -179,7 +184,7 @@ renderConfig();
 renderPending();
 loadQuizzes();
 loadDue();
-if (Pending.list().length && GH.hasToken()) Pending.flush().then(() => { renderPending(); loadQuizzes(); });
+if (Pending.list().length) Pending.flush().then(() => { renderPending(); loadQuizzes(); });
 </script>
 </body>
 </html>

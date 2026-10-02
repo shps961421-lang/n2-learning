@@ -77,7 +77,7 @@ const GH = {
       body: JSON.stringify(body),
     });
     if (!res.ok) {
-      const err = new Error(`GitHub 寫入失敗（${res.status}）`);
+      const err = new Error(explainStatus(res.status, '寫入'));
       err.status = res.status;
       throw err;
     }
@@ -92,12 +92,25 @@ const GH = {
   async testConnection() {
     const { owner, repo } = getConfig();
     const res = await fetch(`https://api.github.com/repos/${owner}/${repo}`, { headers: this.headers() });
-    if (!res.ok) throw new Error(`連線失敗（${res.status}）`);
+    if (!res.ok) throw new Error(explainStatus(res.status, '連線'));
     const data = await res.json();
-    if (!data.permissions || !data.permissions.push) throw new Error('token 沒有寫入權限');
+    if (!data.permissions || !data.permissions.push) {
+      throw new Error('token 沒有寫入權限：請到 GitHub 的 token 設定，確認有勾選 n2-learning，而且 Contents 設為 Read and write');
+    }
     return data;
   },
 };
+
+function explainStatus(status, action) {
+  const reasons = {
+    401: 'token 錯誤或已過期，請重新複製貼上',
+    403: 'token 沒有寫入權限：Contents 要設為 Read and write',
+    404: 'token 沒有選到 n2-learning 這個 repo（Repository access 要勾選 n2-learning）',
+    409: '檔案衝突，請再試一次',
+    422: '檔案已經存在',
+  };
+  return `${action}失敗（${status}）：${reasons[status] || 'GitHub 回應錯誤，請稍後再試'}`;
+}
 
 // 待上傳的作答結果（上傳失敗時保留在手機上）
 const Pending = {
@@ -110,19 +123,29 @@ const Pending = {
   remove(path) {
     store.set('n2.pending', this.list().filter(p => p.path !== path));
   },
+  // 回傳成功上傳的份數；失敗原因記在 lastError
   async flush() {
     let ok = 0;
+    this.setError(null);
+    if (!this.list().length) return 0;
+    if (!GH.hasToken()) {
+      this.setError('這台裝置還沒設定 GitHub token（手機和電腦要各設定一次）');
+      return 0;
+    }
     for (const p of this.list()) {
       try {
         await GH.putFile(p.path, p.text, p.message);
         this.remove(p.path);
         ok++;
       } catch (e) {
-        if (e.status === 422) { this.remove(p.path); ok++; } // 已存在
+        if (e.status === 422) { this.remove(p.path); ok++; continue; } // 已存在
+        this.setError(e.status ? e.message : `連不上 GitHub，可能是網路問題（${e.message}）`);
       }
     }
     return ok;
   },
+  lastError() { return store.get('n2.pendingError', null); },
+  setError(msg) { store.set('n2.pendingError', msg); },
 };
 
 async function fetchJson(path) {
