@@ -1,0 +1,158 @@
+{
+ "quizId": "2026-10-02-diag1",
+ "title": "診斷 1｜漢字讀法・表記・語形成",
+ "cat": "A",
+ "focus": "ok",
+ "startedAt": "2026-10-02T09:41:40.844Z",
+ "submittedAt": "2026-10-02T09:50:13.121Z",
+ "device": "desktop",
+ "totalTimeSec": 208,
+ "score": 8,
+ "graded": 13,
+ "total": 13,
+ "answers": [
+  {
+   "qid": "q1",
+   "tag": "漢字読み",
+   "topic": "盛ん",
+   "blindspot": null,
+   "choice": 1,
+   "answer": 0,
+   "correct": false,
+   "confidence": "guess",
+   "timeSec": 15
+  },
+  {
+   "qid": "q2",
+   "tag": "漢字読み",
+   "topic": "至急",
+   "blindspot": null,
+   "choice": 0,
+   "answer": 3,
+   "correct": false,
+   "confidence": "guess",
+   "timeSec": 45
+  },
+  {
+   "qid": "q3",
+   "tag": "漢字読み",
+   "topic": "偏る",
+   "blindspot": null,
+   "choice": 3,
+   "answer": 3,
+   "correct": true,
+   "confidence": "guess",
+   "timeSec": 12
+  },
+  {
+   "qid": "q4",
+   "tag": "漢字読み",
+   "topic": "貴重",
+   "blindspot": null,
+   "choice": 0,
+   "answer": 0,
+   "correct": true,
+   "confidence": "sure",
+   "timeSec": 11
+  },
+  {
+   "qid": "q5",
+   "tag": "漢字読み",
+   "topic": "湿度",
+   "blindspot": null,
+   "choice": 2,
+   "answer": 0,
+   "correct": false,
+   "confidence": "sure",
+   "timeSec": 5
+  },
+  {
+   "qid": "q6",
+   "tag": "表記",
+   "topic": "導入",
+   "blindspot": null,
+   "choice": 0,
+   "answer": 1,
+   "correct": false,
+   "confidence": "sure",
+   "timeSec": 7
+  },
+  {
+   "qid": "q7",
+   "tag": "表記",
+   "topic": "素直",
+   "blindspot": null,
+   "choice": 1,
+   "answer": 1,
+   "correct": true,
+   "confidence": "sure",
+   "timeSec": 9
+  },
+  {
+   "qid": "q8",
+   "tag": "表記",
+   "topic": "散らかる",
+   "blindspot": null,
+   "choice": 3,
+   "answer": 3,
+   "correct": true,
+   "confidence": "guess",
+   "timeSec": 13
+  },
+  {
+   "qid": "q9",
+   "tag": "表記",
+   "topic": "預ける",
+   "blindspot": null,
+   "choice": 0,
+   "answer": 1,
+   "correct": false,
+   "confidence": "guess",
+   "timeSec": 19
+  },
+  {
+   "qid": "q10",
+   "tag": "表記",
+   "topic": "組織",
+   "blindspot": null,
+   "choice": 3,
+   "answer": 3,
+   "correct": true,
+   "confidence": "sure",
+   "timeSec": 10
+  },
+  {
+   "qid": "q11",
+   "tag": "語形成",
+   "topic": "非常識",
+   "blindspot": null,
+   "choice": 1,
+   "answer": 1,
+   "correct": true,
+   "confidence": "sure",
+   "timeSec": 16
+  },
+  {
+   "qid": "q12",
+   "tag": "語形成",
+   "topic": "前年度",
+   "blindspot": null,
+   "choice": 2,
+   "answer": 2,
+   "correct": true,
+   "confidence": "guess",
+   "timeSec": 32
+  },
+  {
+   "qid": "q13",
+   "tag": "語形成",
+   "topic": "〜化",
+   "blindspot": null,
+   "choice": 3,
+   "answer": 3,
+   "correct": true,
+   "confidence": "sure",
+   "timeSec": 8
+  }
+ ]
+}
